@@ -1,5 +1,36 @@
 import streamlit as st
 import plotly.express as px
+from fpdf import FPDF
+
+def generate_pdf(system_name, location, oss_score, category, explanation, scores):
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 10, "Orwellian Surveillance Scale (OSS) Report", ln=True)
+
+    pdf.set_font("Arial", size=12)
+    pdf.ln(5)
+    pdf.cell(0, 8, f"System: {system_name}", ln=True)
+    pdf.cell(0, 8, f"Location: {location}", ln=True)
+    pdf.ln(5)
+
+    pdf.cell(0, 8, f"OSS Score: {oss_score}", ln=True)
+    pdf.cell(0, 8, f"Category: {category}", ln=True)
+    pdf.ln(5)
+
+    pdf.multi_cell(0, 8, f"Interpretation: {explanation}")
+    pdf.ln(5)
+
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 8, "Dimension Scores", ln=True)
+
+    pdf.set_font("Arial", size=12)
+    for dim, val in scores.items():
+        pdf.cell(0, 8, f"{dim}: {val}", ln=True)
+
+    return pdf.output(dest="S").encode("latin-1")
 
 st.set_page_config(page_title="Orwellian Surveillance Scale (OSS)", layout="centered")
 
@@ -116,3 +147,22 @@ if submitted:
     fig.update_traces(fill="toself")
 
     st.plotly_chart(fig, use_container_width=True)
+
+  st.subheader("Download Report")
+
+pdf_bytes = generate_pdf(
+    system_name,
+    location,
+    oss_score,
+    category,
+    explanation,
+    scores,
+)
+
+st.download_button(
+    label="Download OSS Report as PDF",
+    data=pdf_bytes,
+    file_name="OSS_Report.pdf",
+    mime="application/pdf"
+)
+
